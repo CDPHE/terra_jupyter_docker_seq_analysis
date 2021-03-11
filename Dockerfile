@@ -21,6 +21,54 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
 
 ENV HTSLIB_CONFIGURE_OPTIONS="--enable-gcs"
 
+# install samtools
+# copied from staphb docker file for samtools
+RUN apt-get update && apt-get install -y libncurses5-dev \
+  libbz2-dev \
+  liblzma-dev \
+  libcurl4-gnutls-dev \
+  zlib1g-dev \
+  libssl-dev \
+  gcc \
+  wget \
+  make \
+  perl \
+  bzip2
+  
+RUN mkdir samtools &&\
+  mkdir data &&\
+  cd samtools &&\
+  wget https://github.com/samtools/samtools/releases/download/1.10/samtools-1.10.tar.bz2 &&\
+  tar -xjf samtools-1.10.tar.bz2 &&\
+  rm samtools-1.10.tar.bz2 &&\
+  cd samtools-1.10 &&\
+  ./configure &&\
+  make &&\
+  make install
+
+ENV LC_ALL=C
+WORKDIR /data
+
+#install iqtree
+# copied from stapgh docker file for iqtree
+ARG IQTREE2_VER="2.0.3"
+
+#install dependencies
+RUN apt-get update && apt-get install -y \
+ wget
+
+# download, uncompress iqtree2 tarball; make /data
+RUN wget https://github.com/iqtree/iqtree2/releases/download/v${IQTREE2_VER}/iqtree-${IQTREE2_VER}-Linux.tar.gz && \
+ tar -xzvf iqtree-${IQTREE2_VER}-Linux.tar.gz && \
+ rm -v iqtree-${IQTREE2_VER}-Linux.tar.gz && \
+ mkdir /data
+
+# set PATH and locale settings for singularity compatibility
+ENV PATH="/iqtree-${IQTREE2_VER}-Linux/bin:${PATH}"\
+ LC_ALL=C
+WORKDIR /data
+
+
 RUN pip3 -V \
  && pip3 install --upgrade pip \
  && pip3 install numpy==1.15.2 \
